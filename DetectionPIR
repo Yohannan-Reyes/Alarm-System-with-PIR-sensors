@@ -1,0 +1,120 @@
+const int ledPin = 13; // the pin that the LED is attached to
+int incomingByte;      // a variable to read incoming serial data into
+
+int inputPin0 = 2;
+int inputPin1 = 3;
+int selector = 4;
+int read_selector = LOW;
+int pirState0 = LOW;
+int pirState1 = LOW;
+int val0 = 0;
+int val1 = 0;
+
+void setup() 
+{
+  // initialize serial communication:
+  Serial.begin(9600);
+  // initialize the LED pin as an output:
+  pinMode(ledPin, OUTPUT);
+  pinMode(inputPin0, INPUT);     // declare sensor as input
+  pinMode(inputPin1, INPUT);     // declare sensor as input  
+  // pinMode(selector, INPUT);
+}
+
+void loop() 
+{
+  val0 = digitalRead(inputPin0);
+  val1 = digitalRead(inputPin1);
+  read_selector = digitalRead(selector);
+  
+
+  if (read_selector == LOW)
+  {
+    pirState0 = sendData(val0,pirState0,ledPin,'0');
+    pirState1 = sendData(val1,pirState1,ledPin,'1');
+  }
+  
+
+  /*
+  pirState0 = sendData(val0,pirState0,ledPin,'0');
+  pirState1 = sendData(val1,pirState1,ledPin,'1');
+  */
+  
+  /*
+  if (val0 == HIGH)
+  {            // check if the input is HIGH
+    digitalWrite(ledPin, HIGH);  // turn LED ON
+    if (pirState0 == LOW)
+    {
+      // we have just turned on
+      Serial.print('0');
+      Serial.println("H");
+      // We only want to print on the output change, not state
+      pirState0 = HIGH;
+    }
+  } 
+  else 
+  {
+    digitalWrite(ledPin, LOW); // turn LED OFF
+    if (pirState0 == HIGH)
+    {
+      // we have just turned of
+      Serial.print('0');
+      Serial.println("L");
+      // We only want to print on the output change, not state
+      pirState0 = LOW;
+    }
+  }
+  */
+  
+}
+
+  
+  /* 
+  // see if there's incoming serial data:
+  if (Serial.available() > 0) {
+    // read the oldest byte in the serial buffer:
+    incomingByte = Serial.read();
+    // if it's a capital H (ASCII 72), turn on the LED:
+    if (incomingByte == 'H') {
+      digitalWrite(ledPin, HIGH);
+      Serial.println("PIR Activated");
+    }
+    // if it's an L (ASCII 76) turn off the LED:
+    if (incomingByte == 'L') {
+      digitalWrite(ledPin, LOW);
+      Serial.println("PIR Sleeping");
+    }
+  }
+  */
+
+int sendData(int val, int pirState, int ledPin, char idx)
+{
+  if (val == HIGH)
+  {            // check if the input is HIGH
+    digitalWrite(ledPin, HIGH);  // turn LED ON
+    if (pirState == LOW)
+    {
+      // we have just turned on
+      Serial.print((char)idx);
+      Serial.println("H");
+      
+      // We only want to print on the output change, not state
+      pirState = HIGH;
+    }
+  }
+  else
+  {
+    digitalWrite(ledPin, LOW); // turn LED OFF
+    if (pirState == HIGH)
+    {
+      // we have just turned of
+      Serial.print((char)idx);
+      Serial.println("L");
+      // We only want to print on the output change, not state
+      pirState = LOW;
+    }
+  }
+  
+  return pirState;
+  
