@@ -1,0 +1,163 @@
+# =============================================================================
+# %% Global and local Vars
+# =============================================================================
+
+keep_saving = False
+frame_PATH = 'D:\\LifeWare Technologies\\Alarm System\\Camera + PIR\\Frames'
+i0 = 0
+
+camera = False
+send_mail = False
+send_WA = False
+trigger_PIR = "H2"
+
+
+# =============================================================================
+# %% Imports
+# =============================================================================
+
+import serial
+import time
+from datetime import datetime
+import smtplib
+
+import cv2
+import os
+
+import gc
+
+# =============================================================================
+# %% Defs
+# =============================================================================
+saved = []
+def readArd(ser,saved):
+    string = ser.read(size=5)
+    string = string.decode('ascii')
+    if len(string)>0:
+        string = string.replace('\n','')
+        string = string.replace('\r','')
+        print(string)
+        saved.append(string)
+    return string
+
+# =============================================================================
+# %% Initialization
+# =============================================================================
+
+os.chdir(frame_PATH)
+
+ser = serial.Serial('COM4', 9600, timeout=1)
+txt = open('registro.txt', 'a')
+
+if camera:
+    cap = cv2.VideoCapture(0)
+
+
+Width = 640
+Height = 480
+
+
+'''
+time.sleep(5)
+
+ser.write(b'H')
+print(ser.read(size=50))
+'''
+
+
+if send_mail:
+    content = ("Content Deteccion")
+    
+    mail = smtplib.SMTP('smtp.gmail.com',587)
+    
+    mail.ehlo()
+    
+    mail.starttls()
+    
+    
+    mail.login('your_email@gmail.com','123your_password')
+
+
+# =============================================================================
+# %% Loop
+# =============================================================================
+
+'''
+while True:
+    string = readArd(ser,saved)
+    if string == "Motion detected":
+        print("Movimiento Detectado")
+        # save frames from cv2
+        # Send alerts via mail
+'''
+
+while True:
+    if camera:
+        ret,frame = cap.read()
+    
+    string = readArd(ser,saved)
+    if len(string)>1:
+        if (string[1] == "H"):
+            print("Movimiento Detectado")
+            
+            if send_mail:
+                mail.sendmail('your_email@gmail.com','destination_email@gmail.com',content)
+            
+            keep_saving = True
+            date_frame = str(datetime.now())
+            
+            log = ' '.join([string, date_frame, '\n'])
+            txt.write(str(log))
+            
+            date_frame = date_frame.replace('-','_')
+            date_frame = date_frame.replace(':','_')
+            date_frame = date_frame.replace('.','_')
+            date_frame = date_frame.replace(' ','__')
+            name = ''.join(['capture ', date_frame, '.jpg'])
+            if camera:
+                cv2.imwrite(name,frame)
+            i0 = i0+1
+        
+        
+        elif (keep_saving):
+            if send_mail:
+                mail.sendmail('your_email@gmail.com','destination_email@gmail.com',content) 
+            name = ''.join(['capture ', date_frame, '.jpg'])
+            if camera:
+                cv2.imwrite(name,frame)
+            i0 = i0+1
+            
+    if len(string)>1:
+        if (string[1] == "L"):
+            print("Movimiento terminado")
+            keep_saving = False
+        
+        
+    if i0 // 100:
+        txt.close()
+        txt = open('registro.txt', 'w+')
+        gc.collect()
+        
+        
+'''
+ser.write(b'H')
+string = ser.read(size=20)
+string = string.decode('ascii')
+print(string)
+
+time.sleep(5)
+
+ser.write(b'L')
+string = ser.read(size=20)
+string = string.decode('ascii')
+print(string)
+'''
+
+# =============================================================================
+# %% Close Connection
+# =============================================================================
+
+ser.close()
+txt.close()
+if send_mail:
+    mail.close()
